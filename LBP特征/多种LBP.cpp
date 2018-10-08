@@ -191,39 +191,41 @@ vector<int> getVector(const Mat &_t1f)
  /*生成特征向量*/
 vector<int> getResult(Mat img)
 {
+	int div =8;//图片分块的数量（div*div块）
+	int patterns = 256;//LBP二值模式个数（旋转不变是36，uniform是9，其他是256）
 	/*先剪切图片的长和宽为16的整倍数，多余的像素删除*/
-	Mat roi(img.rows/16*16,img.cols/16*16,CV_8U);
+	Mat roi(img.rows/div*div,img.cols/div*div,CV_8U);
 
 	for(int i=0;i<roi.rows;i++)
 		for(int j=0;j<roi.cols;j++)
 			roi.at<char>(i,j)=img.at<char>(i,j);
 	 /*直方图均衡化*/
 	equalizeHist(roi,roi);
-	vector<vector<int>> a(256,vector<int>(256,0));//初始化一个256行，256列的矩阵，每一行对应一个小块的直方图数据
-	int x=roi.rows/16;
-	int y=roi.cols/16;//计算每个区块的长与宽
+	vector<vector<int>> a(div*div,vector<int>(patterns,0));//初始化一个div*div行，patterns列的矩阵，每一行对应一个小块的直方图数据
+	int x=roi.rows/div;
+	int y=roi.cols/div;//计算每个区块的长与宽
 	for(int i=0;i<roi.rows;i++)
 		for(int j=0;j<roi.cols;j++)//遍历reshape后的LBP图像
 		{
 			int value=roi.at<uchar>(i,j);
-			int num=i/x*16+j/y;//num表示区块的序号
+			int num=i/x*div+j/y;//num表示区块的序号
 			a[num][value] ++;
 		}
-	vector<int> b(256*256,0);//初始化一个一维向量，存放最终的特征向量
-	for(int i = 0; i<256 ;i++)
-		for(int j = 0; j < 256 ; j++)
-			b[i*256+j] = a[i][j];
-
+	vector<int> b(div*div*patterns,0);//初始化一个一维向量，存放最终的特征向量
+	for(int i = 0; i<div*div ;i++)
+		for(int j = 0; j < patterns ; j++)
+			b[i*patterns+j] = a[i][j];
 	return b;
 }
 int main()
 {
-   Mat src = imread("G:/2.png", 0);
-   Mat dst = LBP(src);
+   Mat src = imread("C:/Users/14518/Desktop/环焊缝挑选图片/1.jpg", 0);
+   Mat dst =LBP(src);
    imshow("原始图片", src);
-   imshow("原始LBP", dst);
+   imshow("旋转不变LBP", dst);
    vector<int> result = getResult(dst);
    cout<<"特征向量为:\n"<<endl;
+   cout<<result.size()<<endl;
    for(int i = 0;i<result.size();i++)
    {
 		printf("%d",result[i]);
