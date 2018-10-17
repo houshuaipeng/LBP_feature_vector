@@ -5,6 +5,16 @@
 using namespace cv;
 using namespace std;
  
+//循环右移
+int ror (int val,int length)
+{
+	int rest = val<<(8-length);
+	rest=rest&255;
+	val = val>>length;
+	val = rest|val;
+	return val;
+}
+
 //原始LBP
 Mat LBP(Mat img)
 {
@@ -113,7 +123,7 @@ Mat RILBP(Mat img)
 	   val =i;
       for(int j =0; j<7; j++)
 	  {
-	     temp = i>>1;
+	     temp = ror(i,j);//将原来的右移变为循环右移
 		 if(val>temp)
 		 {
 		   val = temp;
