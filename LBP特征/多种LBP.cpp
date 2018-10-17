@@ -14,6 +14,83 @@ int ror (int val,int length)
 	val = rest|val;
 	return val;
 }
+//将36个patterns映射到0到35中
+int yingshe(int value)
+{
+	if(value==0)
+		value=0;
+	if(value==1)
+		value=1;
+	if(value==3)
+		value=2;
+	if(value==5)
+		value=3;
+	if(value==7)
+		value=4;
+	if(value==9)
+		value=5;
+	if(value==11)
+		value=6;
+	if(value==13)
+		value=7;
+	if(value==15)
+		value=8;
+	if(value==17)
+		value=9;
+	if(value==19)
+		value=10;
+	if(value==21)
+		value=11;
+	if(value==23)
+		value=12;
+	if(value==25)
+		value=13;
+	if(value==27)
+		value=14;
+	if(value==29)
+		value=15;
+	if(value==31)
+		value=16;
+	if(value==37)
+		value=17;
+	if(value==39)
+		value=18;
+	if(value==43)
+		value=19;
+	if(value==45)
+		value=20;
+	if(value==47)
+		value=21;
+	if(value==51)
+		value=22;
+	if(value==53)
+		value=23;
+	if(value==55)
+		value=24;
+	if(value==59)
+		value=25;
+	if(value==61)
+		value=26;
+	if(value==63)
+		value=27;
+	if(value==85)
+		value=28;
+	if(value==87)
+		value=29;
+	if(value==91)
+		value=30;
+	if(value==95)
+		value=31;
+	if(value==111)
+		value=32;
+	if(value==119)
+		value=33;
+	if(value==127)
+		value=34;
+	if(value==255)
+		value=35;
+	return value;
+}
 
 //原始LBP
 Mat LBP(Mat img)
@@ -226,6 +303,35 @@ vector<int> getResult(Mat img)
 		for(int j = 0; j < patterns ; j++)
 			b[i*patterns+j] = a[i][j];
 	return b;
+}
+/*生成旋转不变LBP的特征向量*/
+vector<int> getIRLBPResult(Mat img)
+{
+	int div =8;//图片分块的数量（div*div块）
+	int patterns = 36;//LBP二值模式个数（旋转不变是36，uniform是9，其他是256）
+	/*先剪切图片的长和宽为16的整倍数，多余的像素删除*/
+	Mat roi(img.rows/div*div,img.cols/div*div,CV_8U);
+
+	for(int i=0;i<roi.rows;i++)
+		for(int j=0;j<roi.cols;j++)
+			roi.at<char>(i,j)=img.at<char>(i,j);
+
+	vector<vector<int>> a(div*div,vector<int>(patterns,0));//初始化一个div*div行，patterns列的矩阵，每一行对应一个小块的直方图数据
+	int x=roi.rows/div;
+	int y=roi.cols/div;//计算每个区块的长与宽
+	for(int i=0;i<roi.rows;i++)
+		for(int j=0;j<roi.cols;j++)//遍历reshape后的LBP图像
+		{
+			int value=roi.at<uchar>(i,j);
+			value = yingshe(value);//将36种patterns映射到0到35，这样可以让直方图的横坐标长度由256变为36
+			int num=i/x*div+j/y;//根据像素位置求出区块的序号
+			a[num][value] ++;
+		}
+		vector<int> b(div*div*patterns,0);//初始化一个一维向量，存放最终的特征向量
+		for(int i = 0; i<div*div ;i++)
+			for(int j = 0; j < patterns ; j++)
+				b[i*patterns+j] = a[i][j];
+		return b;
 }
 int main()
 {
