@@ -4,7 +4,7 @@
  
 using namespace cv;
 using namespace std;
- 
+
 //循环右移
 int ror (int val,int length)
 {
@@ -91,7 +91,6 @@ int yingshe(int value)
 		value=35;
 	return value;
 }
-
 //原始LBP
 Mat LBP(Mat img)
 {
@@ -188,47 +187,49 @@ int getHopCount(uchar i)
 //旋转不变LBP
 Mat RILBP(Mat img)
 {
-   uchar RITable[256];
-   int temp;
-   int val;
-   Mat result;
-   result.create(img.rows - 2, img.cols -2 , img.type());
-   result.setTo(0);
- 
-   for(int i = 0; i<256; i++)
-   {
-	   val =i;
-      for(int j =0; j<7; j++)
-	  {
-	     temp = ror(i,j);//将原来的右移变为循环右移
-		 if(val>temp)
-		 {
-		   val = temp;
-		 }
-	  }
-    RITable[i] = val;
-   }
- 
-   for(int i = 1; i<img.rows - 1; i++)
-   {
-      for(int j = 1;j<img.cols -1; j++)
-	  {
-	     uchar center = img.at<uchar>(i, j);
-		 uchar code = 0;
-		 code |= (img.at<uchar>(i-1, j-1) >= center)<<7;
-		 code |= (img.at<uchar>(i-1, j) >= center)<<6;
-		 code |= (img.at<uchar>(i-1, j+1) >= center)<<5;
-		 code |= (img.at<uchar>(i, j+1) >= center)<<4;
-		 code |= (img.at<uchar>(i+1, j+1) >= center)<<3;
-		 code |= (img.at<uchar>(i+1, j) >= center)<<2;
-		 code |= (img.at<uchar>(i+1, j-1) >= center)<<1;
-		 code |= (img.at<uchar>(i, j-1) >= center)<<0;
-		 result.at<uchar>(i -1, j -1) = RITable[code];	   
-	  }
-   }
-   return result;
+	uchar RITable[256];
+	int temp;
+	int val;
+	Mat result;
+	result.create(img.rows - 2, img.cols -2 , img.type());
+	result.setTo(0);
+
+	for(int i = 0; i<256; i++)
+	{
+		val =i;
+		for(int j =1; j<=8; j++)
+		{
+			temp = ror(i,j);
+			if(val>temp)
+			{
+				val = temp;
+			}
+		}
+		RITable[i] = val;
+
+	}
+	//for(int i=0;i<256;i++)
+	// printf("%d\n",RITable[i]);
+	for(int i = 1; i<img.rows - 1; i++)
+	{
+		for(int j = 1;j<img.cols -1; j++)
+		{
+			uchar center = img.at<uchar>(i, j);
+			uchar code = 0;
+			code |= (img.at<uchar>(i-1, j-1) >= center)<<7;
+			code |= (img.at<uchar>(i-1, j) >= center)<<6;
+			code |= (img.at<uchar>(i-1, j+1) >= center)<<5;
+			code |= (img.at<uchar>(i, j+1) >= center)<<4;
+			code |= (img.at<uchar>(i+1, j+1) >= center)<<3;
+			code |= (img.at<uchar>(i+1, j) >= center)<<2;
+			code |= (img.at<uchar>(i+1, j-1) >= center)<<1;
+			code |= (img.at<uchar>(i, j-1) >= center)<<0;
+			result.at<uchar>(i -1, j -1) = RITable[code];	   
+		}
+	}
+	return result;
 }
- 
+
 //UniformLBP
 Mat UniformLBP(Mat img)
 {
@@ -305,7 +306,7 @@ vector<int> getResult(Mat img)
 	return b;
 }
 /*生成旋转不变LBP的特征向量*/
-vector<int> getIRLBPResult(Mat img)
+vector<int> getRILBPResult(Mat img)
 {
 	int div =8;//图片分块的数量（div*div块）
 	int patterns = 36;//LBP二值模式个数（旋转不变是36，uniform是9，其他是256）
@@ -336,12 +337,17 @@ vector<int> getIRLBPResult(Mat img)
 int main()
 {
    Mat src = imread("C:/Users/14518/Desktop/环焊缝挑选图片/1.jpg", 0);
-   Mat dst =LBP(src);
    imshow("原始图片", src);
+   GaussianBlur(src,src,Size(13,13),2,2);//高斯滤波
+   imshow("滤波后",src);
+   Mat dst =RILBP(src);
+
+   
    imshow("旋转不变LBP", dst);
-   vector<int> result = getResult(dst);
+
+   vector<int> result = getRILBPResult(dst);
+   cout<<"特征向量维数： "<<result.size()<<endl;
    cout<<"特征向量为:\n"<<endl;
-   cout<<result.size()<<endl;
    for(int i = 0;i<result.size();i++)
    {
 		printf("%d",result[i]);
