@@ -9,7 +9,7 @@ using namespace std;
 int ror (int val,int length)
 {
 	int rest = val<<(8-length);
-	rest=rest&255;
+	rest=rest&255;//计算机中表示数字是64位的，但是循环右移默认情况是8位，与255取与是为了消除其余位上的非零数字
 	val = val>>length;
 	val = rest|val;
 	return val;
